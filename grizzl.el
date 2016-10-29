@@ -79,20 +79,21 @@ with integers N and TOTAL.
 
 If :CASE-SENSITIVE is specified as a non-nil keyword argument, the index
 will be created case-sensitive, otherwise it will be case-insensitive."
-  (let ((lookup-table (make-hash-table))
-        (total-strs (length strings))
-        (case-sensitive (plist-get options :case-sensitive))
-        (progress-fn (plist-get options :progress-fn))
-        (string-data (vconcat (mapcar (lambda (s)
-                                        (cons s (length s)))
-                                      strings))))
+  (let* ((strs (reverse strings))
+         (lookup-table (make-hash-table))
+         (total-strs (length strs))
+         (case-sensitive (plist-get options :case-sensitive))
+         (progress-fn (plist-get options :progress-fn))
+         (string-data (vconcat (mapcar (lambda (s)
+                                         (cons s (length s)))
+                                       strs))))
     (cl-reduce (lambda (list-offset str)
                  (grizzl-index-insert str list-offset lookup-table
                                       :case-sensitive case-sensitive)
                  (when progress-fn
                    (funcall progress-fn (1+ list-offset) total-strs))
                  (1+ list-offset))
-               strings
+               strs
                :initial-value 0)
     (maphash (lambda (_char str-map)
                (maphash (lambda (list-offset locations)
